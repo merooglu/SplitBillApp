@@ -16,10 +16,7 @@ class CalculatorViewController: UIViewController {
     @IBOutlet weak var twentyPctButton: UIButton!
     @IBOutlet weak var splitNumberLabel: UILabel!
     
-    var tip = 0.10
-    var numberOfPeople = 2
-    var billTotal = 0.0
-    var finalResult = "0.0"
+    var calculatorBrain = CalculatorBrain()
 
     @IBAction func tipChanged(_ sender: UIButton) {
         billTextField.endEditing(true)
@@ -27,25 +24,17 @@ class CalculatorViewController: UIViewController {
         tenPctButton.isSelected = false
         twentyPctButton.isSelected = false
         sender.isSelected = true
-        let buttonTitle = sender.currentTitle!
-        let buttonTitleMinusPercentSign = String(buttonTitle.dropLast())
-        let buttonTitleAsANumber = Double(buttonTitleMinusPercentSign)!
-        tip = buttonTitleAsANumber / 100
+        calculatorBrain.getTip(stringTip: sender.currentTitle!)
     }
     
     @IBAction func stepperValueChanged(_ sender: UIStepper) {
+        billTextField.endEditing(true)
         splitNumberLabel.text = String(format: "%.0f", sender.value)
-        numberOfPeople = Int(sender.value)
+        calculatorBrain.getNumberOfPeople(numberOfPeople: sender.value)
     }
     
-    @IBAction func calculateButtonPressed(_ sender: Any) {
-        let bill = billTextField.text!
-        if bill != "" {
-            billTotal = Double(bill)!
-            let result = billTotal * (1 + tip) / Double(numberOfPeople)
-            self.finalResult = String(format: "%.2f", result)
-        }
-        
+    @IBAction func calculateButtonPressed(_ sender: UIButton) {
+        calculatorBrain.calculateFinalResult(billTotalString: billTextField.text ?? "0.0")
         self.performSegue(withIdentifier: "ResultsViewController", sender: self)
     }
     
@@ -53,9 +42,9 @@ class CalculatorViewController: UIViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "ResultsViewController" {
             let destinationVC = segue.destination as! ResultsViewController
-            destinationVC.result = finalResult
-            destinationVC.tip = Int(tip*100)
-            destinationVC.split = numberOfPeople
+            destinationVC.result = calculatorBrain.getFinalResult()
+            destinationVC.tip = calculatorBrain.getTipAsInt()
+            destinationVC.split = calculatorBrain.getNumberOfPeople()
         }
     }
 }
